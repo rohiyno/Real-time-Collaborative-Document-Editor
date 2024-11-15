@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package collaborativeeditor;
+
+service DocumentService {
+  // Bidirectional stream for document modifications
+  rpc ModifyDocument(stream EditRequest) returns (stream DocumentState) {}
+  
+  // Get current document state
+  rpc FetchDocument(DocumentQuery) returns (DocumentState) {}
+  
+  // Subscribe to document changes
+  rpc WatchDocumentChanges(DocumentQuery) returns (stream DocumentState) {}
+}
+
+service AuditService {
+  // Asynchronous audit logging
+  rpc RecordEdit(EditRecord) returns (AuditResponse) {}
+}
+
+message DocumentQuery {}
+
+message EditRequest {
+  enum EditType {
+    INSERT = 0;
+    MODIFY = 1;
+    REMOVE = 2;
+  }
+  
+  EditType type = 1;
+  int32 offset = 2;
+  string text = 3;
+  int32 span = 4;
+  string editor_id = 5;
+}
+
+message DocumentState {
+  string text = 1;
+  bool has_error = 2;
+  string error_details = 3;
+  string editor_id = 4;
+}
+
+message EditRecord {
+  string edit_type = 1;
+  string text = 2;
+  int32 offset = 3;
+  string editor_id = 4;
+}
+
+message AuditResponse {
+  bool recorded = 1;
+}
